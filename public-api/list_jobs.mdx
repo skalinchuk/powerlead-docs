@@ -1,0 +1,90 @@
+---
+title: List All Bulk Enrichment Jobs
+description: ""
+---
+
+## GET `/public/v1/bulk/jobs`
+
+This endpoint returns a paginated list of all bulk enrichment jobs submitted with your API key. You can use query parameters to paginate through results.
+
+***
+
+### Authorization
+
+**Header:**\
+`X-API-Key: <your_api_key>`
+
+API key must be generated from your account at [dashboard.powerlead.com](https://dashboard.powerlead.com).
+
+***
+
+### 🔎 Query Parameters
+
+* `skip` (integer, optional)\
+  Number of records to skip (for pagination).
+  **Minimum:** 0
+  **Default:** 0
+
+* `limit` (integer, optional)\
+  Maximum number of records to return per request.
+  **Minimum:** 1
+  **Maximum:** 100
+  **Default:** 10
+
+***
+
+### Success Response
+
+**HTTP 200 OK**
+
+```json
+{
+  "jobs": [
+    {
+      "task_id": "123e4567-e89b-12d3-a456-426614174000",
+      "status": "completed",
+      "records": 500,
+      "created_at": "2025-07-01T10:00:00Z",
+      "completed_at": "2025-07-01T10:03:00Z"
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "total_pages": 5,
+    "total_jobs": 50
+  }
+}
+```
+
+**Field Descriptions:**
+
+* `task_id`: Unique job identifier.
+* `status`: Current job status (`queued`, `processing`, `completed`, or `failed`).
+* `records`: Number of records submitted in the job.
+* `created_at`: When the job was submitted.
+* `completed_at`: When the job finished (or `null` if not completed).
+
+***
+
+### Error Responses
+
+**HTTP 422 Unprocessable Entity** – Invalid pagination parameters.
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["query", "limit"],
+      "msg": "value is not in valid range",
+      "type": "value_error"
+    }
+  ]
+}
+```
+
+***
+
+### Notes
+
+* Use `skip` and `limit` to paginate through large job histories.
+* Jobs are listed in reverse chronological order (most recent first).

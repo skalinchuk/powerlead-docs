@@ -1,0 +1,92 @@
+---
+title: Start a new Bulk Enrichment Job
+description: ""
+---
+
+## POST `/public/v1/bulk/start`
+
+This endpoint initiates a new asynchronous enrichment job based on a batch of contact data provided in the request. It validates and queues the request for processing. The job status and results can be retrieved using the returned `task_id`.
+
+***
+
+### Authorization
+
+**Header:**\
+`X-API-Key: <your_api_key>`
+
+You can generate or manage API keys in your [Powerlead Dashboard](https://dashboard.powerlead.com).
+
+***
+
+### Request Body
+
+**Content-Type:** `application/json`
+
+```json
+{
+  "items": [
+    {
+      "Linkedin URL": "https://linkedin.com/in/example",
+      "Full name": "Jane Doe",
+      "First name": "Jane",
+      "Last name": "Doe",
+      "Email": "jane.doe@example.com",
+      "Company name": "Example Inc.",
+      "Company domain": "example.com"
+    }
+  ],
+  "return_fields": {
+    "phone": true,
+    "email": true
+  }
+}
+```
+
+**Field Notes:**
+
+* At least one of the following combinations is required per item:
+  * `Linkedin URL`
+  * `First name`, `Last name`, `Company name`
+  * `First name`, `Company name`
+  * `First name`, `Company domain`
+  * `Email`
+* `return_fields` is optional; defaults to both phone and email if omitted.
+
+***
+
+### Success Response
+
+**HTTP 200 OK**
+
+```json
+{
+  "task_id": "123e4567-e89b-12d3-a456-426614174000",
+  "status": "draft"
+}
+```
+
+* `task_id`: Unique identifier of the submitted job.
+* `status`: Initial job status (typically `"draft"` or `"queued"` depending on processing stage).
+
+***
+
+### Error Responses
+
+**HTTP 422 Unprocessable Entity** – Invalid or incomplete input
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["items", 0, "Email"],
+      "msg": "value is not a valid email address",
+      "type": "value_error"
+    }
+  ]
+}
+```
+
+### Notes
+
+* Rate limits, credit usage, and concurrent job caps apply.
+* Enrichment jobs are processed asynchronously — use the `/status/{task_id}` and `/result/{task_id}` endpoints to track progress and retrieve results.

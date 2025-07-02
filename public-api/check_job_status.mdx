@@ -1,0 +1,73 @@
+---
+title: Check Bulk Enrichment Job Status
+description: ""
+---
+
+## GET `/public/v1/bulk/status/{job_id}`
+
+This endpoint allows you to check the current status of a previously submitted bulk enrichment job using its `job_id`. It returns information about the job's processing state and progress.
+
+***
+
+### Authorization
+
+**Header:**\
+`X-API-Key: <your_api_key>`
+
+API key must be generated from your account at [dashboard.powerlead.com](https://dashboard.powerlead.com).
+
+***
+
+### Path Parameters
+
+* `job_id` (string) **required**\
+  The unique identifier of the enrichment job you want to check.
+
+***
+
+### Success Response
+
+**HTTP 200 OK**
+
+```json
+{
+  "task_id": "123e4567-e89b-12d3-a456-426614174000",
+  "status": "processing",
+  "records": 300,
+  "created_at": "2025-07-01T10:00:00Z",
+  "completed_at": null
+}
+```
+
+**Field Descriptions:**
+
+* `task_id`: The job ID.
+* `status`: One of `queued`, `processing`, `completed`, or `failed`.
+* `records`: Total number of records in the job.
+* `created_at`: Timestamp of when the job was created.
+* `completed_at`: Timestamp of job completion or `null` if not yet completed.
+
+***
+
+### Error Responses
+
+**HTTP 422 Unprocessable Entity** – Invalid `job_id` or malformed request.
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["path", "job_id"],
+      "msg": "Invalid job ID format",
+      "type": "value_error"
+    }
+  ]
+}
+```
+
+***
+
+### Notes
+
+* Use this endpoint to periodically poll job status.
+* Once the status is `completed`, use the [`GET /public/v1/bulk/result/{job_id}`](#) endpoint to retrieve results.

@@ -1,0 +1,79 @@
+---
+title: Retrieve Bulk Enrichment Job Results
+description: ""
+---
+
+## GET `/public/v1/bulk/result/{job_id}`
+
+Use this endpoint to retrieve the final results of a completed bulk enrichment job. The response contains the enriched contact data, including emails and phone numbers (depending on the requested return fields).
+
+***
+
+### Authorization
+
+**Header:**\
+`X-API-Key: <your_api_key>`
+
+API key must be generated from your account at [dashboard.powerlead.com](https://dashboard.powerlead.com).
+
+***
+
+### Path Parameters
+
+* `job_id` (string) **required**\
+  The unique identifier of the bulk enrichment job whose results you wish to retrieve.
+
+***
+
+### Success Response
+
+**HTTP 200 OK**
+
+```json
+[
+  {
+    "Linkedin URL": "https://linkedin.com/in/example",
+    "Full name": "Jane Doe",
+    "First name": "Jane",
+    "Last name": "Doe",
+    "Email": "jane.doe@example.com",
+    "Company name": "Example Inc.",
+    "Company domain": "example.com",
+    "emails": ["jane.doe@example.com", "contact@example.com"],
+    "phones": ["+1234567890", "+1987654321"]
+  },
+  ...
+]
+```
+
+**Field Descriptions:**
+
+* Original input fields are echoed back (e.g., name, company, LinkedIn URL).
+* `emails`: Array of enriched email addresses (if requested).
+* `phones`: Array of enriched phone numbers (if requested).
+
+***
+
+### Error Responses
+
+**HTTP 422 Unprocessable Entity** – Invalid or malformed `job_id`.
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["path", "job_id"],
+      "msg": "Invalid job ID format",
+      "type": "value_error"
+    }
+  ]
+}
+```
+
+***
+
+### Notes
+
+* This endpoint returns results only for jobs with a `completed` status.
+* Use the [`GET /public/v1/bulk/status/{job_id}`](#) endpoint to check if the job is finished before requesting results.
+* Results are available for at least **30 days** after completion.
