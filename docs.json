@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Powerlead Public API",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#2173FF",
+    "light": "#E7F0FF",
+    "dark": "#2173FF"
   },
   "favicon": "/favicon.ico",
   "navigation": {
