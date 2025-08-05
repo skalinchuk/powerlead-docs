@@ -1,0 +1,40 @@
+---
+title: API Limits
+description: ""
+---
+
+To ensure a stable and fair experience for all users, the Powerlead Public API enforces a set of usage limits and processing constraints. These safeguards help us deliver fast, reliable enrichment across thousands of concurrent users.
+
+---
+
+### Request Limits
+
+- **Maximum Items per Request:** `1000`
+  Each request to the Bulk Enrichment API can contain up to 1000 items. If your dataset is larger, please split it into multiple requests.
+
+- **Maximum Requests per Second:** `5`
+  To prevent overload and ensure performance consistency, we limit each API key to 5 requests per second.
+
+Exceeding these limits will result in a `429 Too Many Requests` error. We recommend implementing exponential backoff or a queuing mechanism in your integration to handle retries gracefully.
+
+---
+
+### Processing Behavior
+
+- **Batch Size:** `50 items per batch`
+  All records are processed internally in batches of 50.
+
+- **Processing Order:** `Sequential (consecutive)`
+  Each batch is processed in the order it was received. This ensures predictable behavior and easier debugging in case of data issues.
+
+---
+
+### Pro Tips
+
+- If you're enriching a large number of items, consider splitting it into chunks of up to 1000 records and submitting them in a staggered manner to avoid hitting validation limits.
+- Monitor your job statuses and schedule retries only when needed — avoid retrying completed or still-processing jobs.
+- Use the `/status/{job_id}` endpoint to track progress and wait for completion before calling `/result/{job_id}`.
+
+---
+
+We're here to support your growth at scale — and these limits help us keep everything running smoothly for you and thousands of other users. If you have a high-volume use case and need elevated limits, feel free to reach out to our team through your Powerlead dashboard.

@@ -18,6 +18,7 @@
             "pages": [
               "index",
               "public-api/api_key",
+              "public-api/api_limits",
               "public-api/start_job",
               "public-api/check_job_status",
               "public-api/list_jobs",
