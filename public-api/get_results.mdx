@@ -41,8 +41,7 @@ API key must be generated from your account at [dashboard.powerlead.com](https:/
     "Company domain": "example.com",
     "emails": ["jane.doe@example.com", "contact@example.com"],
     "phones": ["+1234567890", "+1987654321"]
-  },
-  ...
+  }
 ]
 ```
 
@@ -77,3 +76,109 @@ API key must be generated from your account at [dashboard.powerlead.com](https:/
 * This endpoint returns results only for jobs with a `completed` status.
 * Use the [`GET /public/v1/bulk/status/{job_id}`](#) endpoint to check if the job is finished before requesting results.
 * Results are available for at least **30 days** after completion.
+
+***
+
+## 📣 Webhook Result Delivery (Optional)
+
+Instead of polling this endpoint, you can opt in to receive results automatically via a webhook when starting a bulk job.
+
+### How to Enable Webhook Delivery
+
+Include a `webhook` block in your job creation request (`POST /public/v1/bulk/start`):
+
+```json
+"webhook": {
+  "url": "https://your.app.local/api/webhook",
+  "timeout_sec": 5,
+  "max_retries": 5,
+  "backoff_factor": 0.5,
+  "secret": "u5Y0v6g8O8i2b9Uq2xF3m7QmS1hI3yZqW9tK0dV2pE8",
+  "headers": {
+    "X-API-Key": "client-local-check"
+  }
+}
+```
+
+### Webhook Payload Example
+
+```json
+{
+  "event": "csv_enrichment.completed",
+  "delivery_id": "1a2b3c-...",
+  "job_uuid": "b3b2d4-...",
+  "status": "DONE",  // or DONE_PARTIALLY / ERROR
+  "created_at": "2025-08-12T14:26:57Z",
+  "updated_at": "2025-08-12T14:31:12Z",
+  "done_at": "2025-08-12T14:31:12Z",
+  "results": [ ... ]
+}
+```
+
+### Webhook Headers
+
+- `Content-Type: application/json`
+- `User-Agent: CSVEnrichmentWebhook/1.0`
+- `X-Delivery-Id: <uuid>` – Unique delivery ID (idempotency)
+- `X-Webhook-Timestamp: <unix_seconds>` – UTC timestamp of delivery
+- `X-Webhook-Signature: v1=<hex>` – HMAC-SHA256 if `secret` is provided
+
+### Signature Verification (Optional but Recommended)
+
+If you use the `secret` field, each payload will be signed for authenticity.
+
+**Signature Algorithm:**
+
+```
+signature = hex(HMAC_SHA256(secret, "{timestamp}.{raw_body_bytes}"))
+```
+
+**Sample Verification (Python / FastAPI):**
+
+```python
+from fastapi import FastAPI, Request, Header, HTTPException
+import hmac, hashlib, time
+
+app = FastAPI()
+SHARED_SECRET = "your-secret-here"
+MAX_SKEW = 300  # 5 minutes
+
+def verify(ts: str, sig: str, body: bytes) -> bool:
+    if abs(time.time() - int(ts)) > MAX_SKEW:
+        return False
+    mac = hmac.new(SHARED_SECRET.encode(), (ts + ".").encode() + body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(sig.removeprefix("v1="), mac)
+
+@app.post("/webhook")
+async def webhook(
+    request: Request,
+    x_webhook_timestamp: str = Header(...),
+    x_delivery_id: str = Header(...),
+    x_webhook_signature: str | None = Header(None)
+):
+    body = await request.body()
+    if SHARED_SECRET:
+        if not x_webhook_signature or not verify(x_webhook_timestamp, x_webhook_signature, body):
+            raise HTTPException(400, "bad signature")
+    return {"ok": True}
+```
+
+***
+
+### Delivery Behavior
+
+- Any `2xx` HTTP status is considered successful.
+- Retries happen on `4xx`, `5xx`, timeouts, or network errors.
+- Retry delay is exponential based on `backoff_factor`, up to `max_retries`.
+- Internal retry window capped to 1 hour.
+- All attempts and responses are logged internally.
+
+***
+
+### Recommendations for Receivers
+
+- Respond quickly (≤2s). Handle processing asynchronously.
+- Validate `X-Webhook-Signature` and `X-Webhook-Timestamp` if using a secret.
+- Use `X-Delivery-Id` to ensure idempotency and prevent duplicate processing.
+- Secure your endpoint with custom headers (e.g. `X-API-Key`).
+- Validate that the timestamp is within a reasonable range (e.g., ±5 minutes).
