@@ -45,7 +45,6 @@ API key must be generated from your account at [dashboard.powerlead.com](https:/
     "url": "https://your.app.local/api/webhook",
     "timeout_sec": 5,
     "max_retries": 5,
-    "backoff_factor": 0.5,
     "secret": "your-secret-key",
     "headers": {
       "X-API-Key": "custom-client-header"
@@ -63,9 +62,10 @@ You can optionally provide a `webhook` configuration block to receive automatic 
 - `url` (required): Your webhook endpoint.
 - `timeout_sec`: Max time to wait for response (default: 5, range: 1–30).
 - `max_retries`: Number of retry attempts (default: 5, range: 0–10).
-- `backoff_factor`: Exponential backoff multiplier (default: 0.5).
 - `secret`: Secret used to sign the request body (HMAC-SHA256).
 - `headers`: Custom headers to include (cannot override `Host`, `Content-Length`).
+
+Please note that webhook retry attempts are executed with exponential intervals. For example, for 3 retries, the second call (first retry) will happen in 1 minute after the first attempt, the second - in 2 minutes after the first attempt, and the third - in 4 minutes after the second attempt.
 
 **Webhook Payload Example:**
 

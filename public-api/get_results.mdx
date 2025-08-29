@@ -92,7 +92,6 @@ Include a `webhook` block in your job creation request (`POST /public/v1/bulk/st
   "url": "https://your.app.local/api/webhook",
   "timeout_sec": 5,
   "max_retries": 5,
-  "backoff_factor": 0.5,
   "secret": "u5Y0v6g8O8i2b9Uq2xF3m7QmS1hI3yZqW9tK0dV2pE8",
   "headers": {
     "X-API-Key": "client-local-check"
@@ -169,7 +168,7 @@ async def webhook(
 
 - Any `2xx` HTTP status is considered successful.
 - Retries happen on `4xx`, `5xx`, timeouts, or network errors.
-- Retry delay is exponential based on `backoff_factor`, up to `max_retries`.
+- Retry delay is exponential (1 minute, 2 minutes, 4 minutes, etc.), up to `max_retries`.
 - Internal retry window capped to 1 hour.
 - All attempts and responses are logged internally.
 
